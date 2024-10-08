@@ -8,7 +8,47 @@ dependencies = [
     "alembic>=1.13.3",
     "asyncpg>=0.29.0",
     "email-validator>=2.2.0",
-    "fastapi-cli>=0.0.5",
     "fastapi>=0.115.0",
+    "loguru>=0.7.2",
+    "phonenumbers>=8.13.47",
+    "pydantic-extra-types>=2.9.0",
     "sqlmodel>=0.0.22",
+]
+
+[tool.ruff]
+exclude = [
+    ".idea",
+    ".github",
+    ".venv",
+    "migrations",
+]
+
+[tool.ruff.lint]
+extend-select = [
+    "E",  #    pycodestyle errors
+    "W",  #    pycodestyle warnings
+    "N",  #    pep8-naming
+    "F",  #    pyflakes
+    "I",  #    isort
+    "B",  #    flake8-bugbear
+    "C4", #    flake8-comprehensions
+    "UP", #    pyupgrade
+    "ASYNC", # flake8-async
+    "T20", #   flake8-print
+    "RUF", #   ruff-specified
+    "SIM", #   flake8-simplify
+    "C901" #   Cyclomatic compexity
+]
+extend-ignore = [
+    "RUF001", # ambiguous-unicode-character-string
+    "RUF012" #  Mutable class attributes should be annotated with `typing.ClassVar`
+]
+
+[tool.ruff.lint.per-file-ignores]
+"app/models/__init__.py" = ["F401"]
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.6.9",
+    "ruff-lsp>=0.0.57",
 ]
