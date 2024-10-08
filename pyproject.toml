@@ -1,0 +1,14 @@
+[project]
+name = "avcrm-backend-fastapi"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.13.3",
+    "asyncpg>=0.29.0",
+    "email-validator>=2.2.0",
+    "fastapi-cli>=0.0.5",
+    "fastapi>=0.115.0",
+    "sqlmodel>=0.0.22",
+]
