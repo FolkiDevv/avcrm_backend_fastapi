@@ -6,13 +6,20 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.13.3",
+    "asgi-correlation-id>=4.3.3",
     "asyncpg>=0.29.0",
+    "bcrypt>=4.2.0",
     "email-validator>=2.2.0",
+    "fastapi-pagination>=0.12.31",
     "fastapi>=0.115.0",
-    "loguru>=0.7.2",
+    "granian[reload]>=1.6.0",
     "phonenumbers>=8.13.47",
     "pydantic-extra-types>=2.9.0",
+    "pydantic-settings>=2.5.2",
+    "pyjwt>=2.9.0",
+    "python-multipart>=0.0.12",
     "sqlmodel>=0.0.22",
+    "structlog>=24.4.0",
 ]
 
 [tool.ruff]
@@ -51,4 +58,5 @@ extend-ignore = [
 dev-dependencies = [
     "ruff>=0.6.9",
     "ruff-lsp>=0.0.57",
+    "pyright>=1.1.383",
 ]

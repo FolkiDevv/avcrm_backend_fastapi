@@ -11,15 +11,17 @@ from app.models.role import Role
 
 class User(BaseUUIDModel, table=True):
     username: str = Field(nullable=False, unique=True)
+    password: str
 
     first_name: str
     last_name: str
     email: EmailStr | None = Field(nullable=True, default=None)
     phone: PhoneNumber | None = Field(nullable=True, default=None)
 
-    is_active: bool
+    is_active: bool = Field(default=True, nullable=False)
 
     roles: list["UserRoles"] = Relationship()
+
 
 class UserRoles(BaseIDModel, table=True):
     __table_args__ = (UniqueConstraint("user_id", "role_id", name="unique_user_role"),)
