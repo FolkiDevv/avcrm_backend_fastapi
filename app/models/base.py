@@ -1,15 +1,16 @@
 import uuid
 from datetime import datetime
 
+from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlmodel import Field, SQLModel
 
 
-class BaseCUTimeModel(SQLModel):
+class BaseCUTimeModel(AsyncAttrs, SQLModel):
     updated_at: datetime | None = Field(
-        default_factory=datetime.now,
-        sa_column_kwargs={"onupdate": datetime.now}
+        default_factory=datetime.now, sa_column_kwargs={"onupdate": datetime.now}
     )
     created_at: datetime | None = Field(default_factory=datetime.now)
+
 
 class BaseUUIDModel(BaseCUTimeModel):
     id: uuid.UUID = Field(
@@ -18,6 +19,7 @@ class BaseUUIDModel(BaseCUTimeModel):
         index=True,
         nullable=False,
     )
+
 
 class BaseIDModel(BaseCUTimeModel):
     id: int | None = Field(

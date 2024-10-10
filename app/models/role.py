@@ -10,7 +10,7 @@ class Role(BaseUUIDModel, table=True):
     name: str
     description: str | None = Field(default=None, nullable=True)
 
-    permissions: list["RolePermission"] = Relationship()
+    permissions: list["RolePermission"] | None = Relationship()
 
 
 class RolePermission(BaseIDModel, table=True):

@@ -4,7 +4,8 @@ from typing import Annotated
 import structlog
 from asgi_correlation_id import CorrelationIdMiddleware
 from asgi_correlation_id.context import correlation_id
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
+from fastapi.params import Security
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -14,6 +15,7 @@ from app.core.security import (
     User,
     get_current_active_user,
 )
+from app.models.user import UserPublic
 from app.utils.custom_logging import setup_logging
 
 setup_logging(json_logs=settings.LOG_JSON_FORMAT, log_level=settings.LOG_LEVEL)
@@ -102,9 +104,9 @@ def hello():
     return "Hello, World!"
 
 
-@app.get("/users/me/", response_model=User)
+@app.get("/users/me/", response_model=UserPublic)
 async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    current_user: Annotated[User, Security(get_current_active_user, scopes=["me"])],
 ):
     return current_user
 

@@ -1,4 +1,5 @@
 import uuid
+from typing import ClassVar
 
 from pydantic import EmailStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
@@ -9,7 +10,7 @@ from app.models.base import BaseIDModel, BaseUUIDModel
 from app.models.role import Role
 
 
-class User(BaseUUIDModel, table=True):
+class UserBase(BaseUUIDModel):
     username: str = Field(nullable=False, unique=True)
     password: str
 
@@ -20,7 +21,15 @@ class User(BaseUUIDModel, table=True):
 
     is_active: bool = Field(default=True, nullable=False)
 
-    roles: list["UserRoles"] = Relationship()
+
+class User(UserBase, table=True):
+    roles: list["UserRoles"] | None = Relationship(
+        # sa_relationship_kwargs={"lazy": "joined"}
+    )
+
+
+class UserPublic(UserBase):
+    password: ClassVar[str]
 
 
 class UserRoles(BaseIDModel, table=True):
