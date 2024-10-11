@@ -39,7 +39,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
-async def get_current_user(
+async def __get_current_user(
     security_scopes: SecurityScopes,
     token: Annotated[str, Depends(oauth2_scheme)],
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -59,7 +59,6 @@ async def get_current_user(
     except InvalidTokenError as err:
         raise credentials_exception from err
 
-    # user = await CRUDUser(User, session).fetch(id=token_data.id)
     statement = (
         select(User, Permission)
         .where(User.id == token_data.id)
@@ -77,46 +76,27 @@ async def get_current_user(
     )
     res = (await session.exec(statement)).all()
     try:
-        user = res[0][0]
+        user: User = res[0][0]
     except IndexError as err:
         raise credentials_exception from err
 
     permissions = {perm.name for (_, perm) in res}
 
-    # await user.awaitable_attrs.roles
     logger = get_logger(__name__)
     logger.debug(str(permissions))
-    # if user.roles:
-    #     user_roles_ids = [user_role.role_id for user_role in user.roles]
-    #     # statement = (
-    #     #     select(Permission)
-    #     #     .where(col(Role.id).in_(user_roles_ids))
-    #     #     .join(RolePermission)
-    #     # )
-    #     statement2 = (
-    #         select(User, Permission)
-    #         .where(User.id == user_id)
-    #         .join(UserRoles)
-    #         .join(Role)
-    #         .join(RolePermission)
-    #     )
-    #     res = (await session.exec(statement2)).all()
-    #     user = res[0][0]
-    #     permissions = [perm.name for perm in res[1:]]
-    # else:
-    #     permissions = []
-    for scope in security_scopes.scopes:
-        if scope not in permissions:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Not enough permissions",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+    if user.id != settings.SUPERUSER_ID:
+        for scope in security_scopes.scopes:
+            if scope not in permissions:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Not enough permissions",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
     return user
 
 
-async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)],
+async def get_auth_user(
+    current_user: Annotated[User, Depends(__get_current_user)],
 ) -> User | None:
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")

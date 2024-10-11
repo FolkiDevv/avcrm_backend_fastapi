@@ -1,35 +1,36 @@
 import uuid
-from typing import ClassVar
 
 from pydantic import EmailStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
 from sqlalchemy import UniqueConstraint
-from sqlmodel import Field, Relationship
+from sqlmodel import Field, Relationship, SQLModel
 
 from app.models.base import BaseIDModel, BaseUUIDModel
 from app.models.role import Role
 
+PhoneNumber.phone_format = "E164"
 
-class UserBase(BaseUUIDModel):
-    username: str = Field(nullable=False, unique=True)
+
+class UserBase(SQLModel):
+    username: str = Field(
+        nullable=False,
+        unique=True,
+        schema_extra={"pattern": r"^[a-z0-9_]+$"},
+    )
     password: str
 
-    first_name: str
-    last_name: str
+    first_name: str = Field(min_length=2, max_length=50, nullable=False)
+    last_name: str = Field(min_length=2, max_length=50, nullable=False)
     email: EmailStr | None = Field(nullable=True, default=None)
     phone: PhoneNumber | None = Field(nullable=True, default=None)
 
     is_active: bool = Field(default=True, nullable=False)
 
 
-class User(UserBase, table=True):
+class User(BaseUUIDModel, UserBase, table=True):
     roles: list["UserRoles"] | None = Relationship(
         # sa_relationship_kwargs={"lazy": "joined"}
     )
-
-
-class UserPublic(UserBase):
-    password: ClassVar[str]
 
 
 class UserRoles(BaseIDModel, table=True):

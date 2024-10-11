@@ -39,7 +39,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.session = session
 
     async def fetch(
-        self, *, id: UUID | str | int, db_session: AsyncSession | None = None
+        self, id: UUID | str | int, db_session: AsyncSession | None = None
     ) -> ModelType | None:
         db_session = db_session or self.session
         query = select(self.model).where(self.model.id == id)
@@ -48,7 +48,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def fetch_by_ids(
         self,
-        *,
         list_ids: list[UUID | str | int],
         db_session: AsyncSession | None = None,
     ) -> Sequence[ModelType] | None:
@@ -67,21 +66,21 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def fetch_many(
         self,
-        *,
         skip: int = 0,
         limit: int = 100,
         query: T | Select[T] | None = None,
         db_session: AsyncSession | None = None,
     ) -> Sequence[ModelType]:
         db_session = db_session or self.session
-        if query is None:
-            query = select(self.model).offset(skip).limit(limit).order_by(self.model.id)
+
+        query = query if query is not None else select(self.model)
+        query = query.offset(skip).limit(limit).order_by(self.model.id)
+
         response = await db_session.exec(query)
         return response.all()
 
     async def fetch_many_paginated(
         self,
-        *,
         params: Params | None = _params,
         query: T | Select[T] | None = None,
         db_session: AsyncSession | None = None,
@@ -95,7 +94,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def fetch_many_paginated_ordered(
         self,
-        *,
         params: Params | None = _params,
         order_by: str | None = None,
         order: IOrderEnum | None = IOrderEnum.ascendent,
@@ -119,7 +117,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def fetch_many_ordered(
         self,
-        *,
         skip: int = 0,
         limit: int = 100,
         order_by: str | None = None,
@@ -153,7 +150,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def create(
         self,
-        *,
         obj_in: CreateSchemaType | ModelType,
         # created_by_id: UUID | str | None = None,
         db_session: AsyncSession | None = None,
@@ -178,7 +174,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def update(
         self,
-        *,
         obj_current: ModelType,
         obj_new: UpdateSchemaType | dict[str, Any] | ModelType,
         db_session: AsyncSession | None = None,
@@ -200,7 +195,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return obj_current
 
     async def remove(
-        self, *, id: UUID | str | int, db_session: AsyncSession | None = None
+        self, id: UUID | str | int, db_session: AsyncSession | None = None
     ) -> ModelType:
         db_session = db_session or self.session
         response = await db_session.exec(select(self.model).where(self.model.id == id))

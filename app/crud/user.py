@@ -3,9 +3,10 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.crud.base import CRUDBase
 from app.models import User
+from app.schemas.user import UserCreate, UserUpdate
 
 
-class CRUDUser(CRUDBase[User, User, User]):
+class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     async def fetch_by_username(
         self, *, username: str, db_session: AsyncSession | None = None
     ) -> User | None:

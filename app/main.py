@@ -1,27 +1,18 @@
 import time
-from typing import Annotated
 
 import structlog
 from asgi_correlation_id import CorrelationIdMiddleware
 from asgi_correlation_id.context import correlation_id
 from fastapi import FastAPI
-from fastapi.params import Security
 from starlette.requests import Request
 from starlette.responses import Response
 
 from app.api.v1.api import api_router as api_router_v1
 from app.core.config import settings
-from app.core.security import (
-    User,
-    get_current_active_user,
-)
-from app.models.user import UserPublic
 from app.utils.custom_logging import setup_logging
 
 setup_logging(json_logs=settings.LOG_JSON_FORMAT, log_level=settings.LOG_LEVEL)
-
 access_logger = structlog.get_logger("api.access")
-
 logger = structlog.get_logger()
 
 # @asynccontextmanager
@@ -102,28 +93,6 @@ def hello():
     # custom_structlog_logger.error("This is an error message from Structlog")
 
     return "Hello, World!"
-
-
-@app.get("/users/me/", response_model=UserPublic)
-async def read_users_me(
-    current_user: Annotated[User, Security(get_current_active_user, scopes=["me"])],
-):
-    return current_user
-
-
-# @app.get("/users/new/")
-# async def read_own_items(
-#     session: Annotated[AsyncSession, Depends(get_session)],
-# ):
-#     user = User(
-#         username="test",
-#         password=get_password_hash("test"),
-#         first_name="Mr",
-#         last_name="Test",
-#     )
-#     session.add(user)
-#     await session.commit()
-#     return user
 
 
 # Add Routers

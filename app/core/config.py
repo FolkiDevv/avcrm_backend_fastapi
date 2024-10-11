@@ -1,4 +1,5 @@
 from enum import Enum
+from uuid import UUID
 
 from pydantic_settings import BaseSettings
 
@@ -28,6 +29,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
+    SUPERUSER_ID: UUID | None = None
 
 
 settings = Settings()  # pyright: ignore [reportCallIssue]
