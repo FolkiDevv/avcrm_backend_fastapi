@@ -22,7 +22,7 @@ async def login_for_access_token(
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> TokenScheme:
     user = await authenticate_user(form_data.username, form_data.password, session)
-    if not user:
+    if not user or user.is_active is False:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",

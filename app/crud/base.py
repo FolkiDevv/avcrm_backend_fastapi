@@ -28,14 +28,16 @@ _params = Params()
 
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
-    def __init__(self, model: type[ModelType], session: AsyncSession):
+    model: type[ModelType]
+
+    def __init__(self, session: AsyncSession):
         """
         CRUD object with default methods to Create, Read, Update, Delete (CRUD).
         **Parameters**
         * `model`: A SQLModel model class
         * `session`: A SQLModel session object
         """
-        self.model = model
+        # self.model = model
         self.session = session
 
     async def fetch(

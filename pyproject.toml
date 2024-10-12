@@ -20,6 +20,7 @@ dependencies = [
     "python-multipart>=0.0.12",
     "sqlmodel>=0.0.22",
     "structlog>=24.4.0",
+    "typer>=0.12.5",
 ]
 
 [tool.ruff]
@@ -32,12 +33,12 @@ exclude = [
 
 [tool.ruff.lint]
 extend-select = [
-    "E",  #    pycodestyle errors
-    "W",  #    pycodestyle warnings
-    "N",  #    pep8-naming
-    "F",  #    pyflakes
-    "I",  #    isort
-    "B",  #    flake8-bugbear
+    "E", #    pycodestyle errors
+    "W", #    pycodestyle warnings
+    "N", #    pep8-naming
+    "F", #    pyflakes
+    "I", #    isort
+    "B", #    flake8-bugbear
     "C4", #    flake8-comprehensions
     "UP", #    pyupgrade
     "ASYNC", # flake8-async

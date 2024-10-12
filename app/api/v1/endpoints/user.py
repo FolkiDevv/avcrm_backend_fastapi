@@ -27,7 +27,7 @@ async def get_user_by_id(
     _: Annotated[UserRead, Security(get_auth_user, scopes=("user.get",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
-    return await CRUDUser(User, session).fetch(id=user_id)
+    return await CRUDUser(session).fetch(id=user_id)
 
 
 @router.get("/", response_model=list[UserRead])
@@ -49,7 +49,7 @@ async def get_users(
     if last_name is not None:
         statement = statement.where(col(User.last_name).contains(last_name))
 
-    return await CRUDUser(User, session).fetch_many(skip, limit, statement)
+    return await CRUDUser(session).fetch_many(skip, limit, statement)
 
 
 @router.post("/{user_id}", response_model=UserRead)
@@ -59,7 +59,7 @@ async def update_user_by_id(
     _: Annotated[UserRead, Security(get_auth_user, scopes=("user.update",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
-    crud_user = CRUDUser(User, session)
+    crud_user = CRUDUser(session)
     user = await crud_user.fetch(id=user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -79,7 +79,7 @@ async def remove_user_by_id(
     if current_user.id == user_id:
         raise HTTPException(status_code=400, detail="You can't delete yourself")
 
-    return await CRUDUser(User, session).remove(user_id)
+    return await CRUDUser(session).remove(user_id)
 
 
 @router.put("/", response_model=UserRead)
@@ -88,7 +88,7 @@ async def create_user(
     _: Annotated[UserRead, Security(get_auth_user, scopes=("user.create",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
-    crud_user = CRUDUser(User, session)
+    crud_user = CRUDUser(session)
 
     new_user.password = get_password_hash(new_user.password)
 

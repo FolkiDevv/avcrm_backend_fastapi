@@ -18,5 +18,5 @@ class RolePermission(BaseIDModel, table=True):
         UniqueConstraint("role_id", "permission_id", name="unique_role_permission"),
     )
 
-    role_id: uuid.UUID = Field(foreign_key="role.id")
-    permission_id: int = Field(foreign_key="permission.id")
+    role_id: uuid.UUID = Field(foreign_key="role.id", ondelete="CASCADE")
+    permission_id: int = Field(foreign_key="permission.id", ondelete="CASCADE")

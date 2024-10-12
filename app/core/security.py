@@ -23,7 +23,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/login")
 async def authenticate_user(
     username: str, password: str, session: AsyncSession
 ) -> User | Literal[False]:
-    user = await CRUDUser(User, session).fetch_by_username(username=username)
+    user = await CRUDUser(session).fetch_by_username(username=username)
     if not user or not verify_password(password, user.password):
         return False
     return user
@@ -59,8 +59,10 @@ async def __get_current_user(
     except InvalidTokenError as err:
         raise credentials_exception from err
 
+    user = await CRUDUser(session).fetch(id=token_data.id)
+
     statement = (
-        select(User, Permission)
+        select(Permission)
         .where(User.id == token_data.id)
         .where(
             col(Permission.id).in_(
@@ -74,15 +76,13 @@ async def __get_current_user(
             )
         )
     )
+
+    logger = get_logger(__name__)
+
     res = (await session.exec(statement)).all()
-    try:
-        user: User = res[0][0]
-    except IndexError as err:
-        raise credentials_exception from err
 
     permissions = {perm.name for (_, perm) in res}
 
-    logger = get_logger(__name__)
     logger.debug(str(permissions))
     if user.id != settings.SUPERUSER_ID:
         for scope in security_scopes.scopes:

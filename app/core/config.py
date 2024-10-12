@@ -5,17 +5,17 @@ from pydantic_settings import BaseSettings
 
 
 class ModeEnum(str, Enum):
-    development = "development"
-    production = "production"
-    testing = "testing"
+    development = "dev"
+    production = "prod"
+    testing = "test"
 
 
 class LogLevelEnum(str, Enum):
-    DEBUG = "DEBUG"
-    INFO = "INFO"
-    WARNING = "WARNING"
-    ERROR = "ERROR"
-    CRITICAL = "CRITICAL"
+    DEBUG = "debug"
+    INFO = "info"
+    WARNING = "warning"
+    ERROR = "error"
+    CRITICAL = "critical"
 
 
 class Settings(BaseSettings):

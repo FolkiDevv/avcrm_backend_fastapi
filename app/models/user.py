@@ -1,4 +1,5 @@
 import uuid
+from typing import TYPE_CHECKING
 
 from pydantic import EmailStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
@@ -6,7 +7,9 @@ from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.models.base import BaseIDModel, BaseUUIDModel
-from app.models.role import Role
+
+if TYPE_CHECKING:
+    from app.models.role import Role
 
 PhoneNumber.phone_format = "E164"
 
@@ -17,7 +20,7 @@ class UserBase(SQLModel):
         unique=True,
         schema_extra={"pattern": r"^[a-z0-9_]+$"},
     )
-    password: str
+    password: str | None = Field(nullable=True)
 
     first_name: str = Field(min_length=2, max_length=50, nullable=False)
     last_name: str = Field(min_length=2, max_length=50, nullable=False)
@@ -36,7 +39,7 @@ class User(BaseUUIDModel, UserBase, table=True):
 class UserRoles(BaseIDModel, table=True):
     __table_args__ = (UniqueConstraint("user_id", "role_id", name="unique_user_role"),)
 
-    user_id: uuid.UUID = Field(foreign_key="user.id")
-    role_id: uuid.UUID = Field(foreign_key="role.id")
+    user_id: uuid.UUID = Field(foreign_key="user.id", ondelete="CASCADE")
+    role_id: uuid.UUID = Field(foreign_key="role.id", ondelete="CASCADE")
 
     role: "Role" = Relationship()

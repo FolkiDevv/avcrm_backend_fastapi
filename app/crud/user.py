@@ -7,6 +7,8 @@ from app.schemas.user import UserCreate, UserUpdate
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
+    model = User
+
     async def fetch_by_username(
         self, *, username: str, db_session: AsyncSession | None = None
     ) -> User | None:
