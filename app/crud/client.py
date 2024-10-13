@@ -13,23 +13,32 @@ class CRUDClient(CRUDBase[Client, ClientCreate, ClientUpdate]):
 
     async def create(
         self, obj_in: ClientCreate, db_session: AsyncSession | None = None
-    ):
+    ) -> Client:
         db_session = db_session or self.session
-        db_obj = self.model.model_validate(obj_in)  # type: ignore
 
         try:
-            user = User(
-                username=transliterate(obj_in.first_name + obj_in.last_name),
-                first_name=obj_in.first_name,
-                last_name=obj_in.last_name,
-                email=obj_in.email,
-                phone=obj_in.phone,
+            # user = User(
+            #     username=transliterate(obj_in.first_name + obj_in.last_name).lower(),
+            #     first_name=obj_in.first_name,
+            #     last_name=obj_in.last_name,
+            #     email=obj_in.email,
+            #     phone=obj_in.phone,
+            # )
+            user = User.model_validate(
+                obj_in,
+                update={
+                    "username": transliterate(
+                        obj_in.first_name + obj_in.last_name
+                    ).lower(),
+                    "password": None,
+                },
             )
             db_session.add(user)
             await db_session.commit()
             await db_session.refresh(user)
 
-            db_obj.user_id = user.id
+            db_obj = self.model.model_validate(obj_in, update={"user_id": user.id})
+            db_obj.user = user
 
             db_session.add(db_obj)
             await db_session.commit()

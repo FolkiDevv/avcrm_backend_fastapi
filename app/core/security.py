@@ -60,6 +60,8 @@ async def __get_current_user(
         raise credentials_exception from err
 
     user = await CRUDUser(session).fetch(id=token_data.id)
+    if not user:
+        raise credentials_exception
 
     statement = (
         select(Permission)

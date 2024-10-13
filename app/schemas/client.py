@@ -6,6 +6,7 @@ from pydantic_extra_types.phone_numbers import PhoneNumber
 from sqlmodel import Field
 
 from app.models.client import ClientBase
+from app.schemas.user import UserRead
 from app.utils.partial import optional
 
 
@@ -17,7 +18,7 @@ class ClientBaseCU(ClientBase):
 
 
 class ClientCreate(ClientBaseCU):
-    pass
+    user_id: ClassVar
 
 
 @optional()
@@ -28,3 +29,4 @@ class ClientUpdate(ClientBaseCU):
 class ClientRead(ClientBase):
     id: UUID
     password: ClassVar
+    user: UserRead

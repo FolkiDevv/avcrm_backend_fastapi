@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from enum import Enum
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Literal, TypeVar
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -8,6 +8,7 @@ from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlmodel import paginate
 from pydantic import BaseModel
 from sqlalchemy import exc
+from sqlalchemy.orm import joinedload
 from sqlmodel import SQLModel, func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel.sql.expression import Select
@@ -41,10 +42,17 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.session = session
 
     async def fetch(
-        self, id: UUID | str | int, db_session: AsyncSession | None = None
+        self,
+        id: UUID | str | int,
+        joinedloads: list[SQLModel | Literal["*"]] | None = None,
+        db_session: AsyncSession | None = None,
     ) -> ModelType | None:
         db_session = db_session or self.session
         query = select(self.model).where(self.model.id == id)
+
+        if joinedloads is not None:
+            query = query.options(joinedload(*joinedloads))
+
         response = await db_session.exec(query)
         return response.one_or_none()
 
@@ -71,12 +79,50 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         skip: int = 0,
         limit: int = 100,
         query: T | Select[T] | None = None,
+        joinedloads: list[SQLModel | Literal["*"]] | None = None,
         db_session: AsyncSession | None = None,
     ) -> Sequence[ModelType]:
         db_session = db_session or self.session
 
         query = query if query is not None else select(self.model)
         query = query.offset(skip).limit(limit).order_by(self.model.id)
+
+        if joinedloads is not None:
+            query = query.options(joinedload(*joinedloads))
+
+        response = await db_session.exec(query)
+        return response.all()
+
+    async def fetch_many_ordered(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        order_by: str | None = None,
+        order: IOrderEnum | None = IOrderEnum.ascendent,
+        query: T | Select[T] | None = None,
+        joinedloads: list[SQLModel | Literal["*"]] | None = None,
+        db_session: AsyncSession | None = None,
+    ) -> Sequence[ModelType]:
+        db_session = db_session or self.session
+
+        columns = self.model.__table__.columns
+
+        if order_by is None or order_by not in columns:
+            order_by = "id"
+
+        query = query if query is not None else select(self.model)
+        query = (
+            query.offset(skip)
+            .limit(limit)
+            .order_by(
+                columns[order_by].asc()
+                if order == IOrderEnum.ascendent
+                else columns[order_by].desc()
+            )
+        )
+
+        if joinedloads is not None:
+            query = query.options(joinedload(*joinedloads))
 
         response = await db_session.exec(query)
         return response.all()
@@ -116,39 +162,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 query = select(self.model).order_by(columns[order_by].desc())
 
         return await paginate(db_session, query, params)
-
-    async def fetch_many_ordered(
-        self,
-        skip: int = 0,
-        limit: int = 100,
-        order_by: str | None = None,
-        order: IOrderEnum | None = IOrderEnum.ascendent,
-        db_session: AsyncSession | None = None,
-    ) -> Sequence[ModelType]:
-        db_session = db_session or self.session
-
-        columns = self.model.__table__.columns
-
-        if order_by is None or order_by not in columns:
-            order_by = "id"
-
-        if order == IOrderEnum.ascendent:
-            query = (
-                select(self.model)
-                .offset(skip)
-                .limit(limit)
-                .order_by(columns[order_by].asc())
-            )
-        else:
-            query = (
-                select(self.model)
-                .offset(skip)
-                .limit(limit)
-                .order_by(columns[order_by].desc())
-            )
-
-        response = await db_session.exec(query)
-        return response.all()
 
     async def create(
         self,

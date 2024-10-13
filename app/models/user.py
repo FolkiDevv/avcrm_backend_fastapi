@@ -32,6 +32,7 @@ class UserBase(SQLModel):
 
 class User(BaseUUIDModel, UserBase, table=True):
     roles: list["UserRoles"] | None = Relationship(
+        cascade_delete=True,
         # sa_relationship_kwargs={"lazy": "joined"}
     )
 
