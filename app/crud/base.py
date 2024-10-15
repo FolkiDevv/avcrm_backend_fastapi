@@ -4,8 +4,6 @@ from typing import Any, Generic, Literal, TypeVar
 from uuid import UUID
 
 from fastapi import HTTPException
-from fastapi_pagination import Page, Params
-from fastapi_pagination.ext.sqlmodel import paginate
 from pydantic import BaseModel
 from sqlalchemy import exc
 from sqlalchemy.orm import joinedload
@@ -23,9 +21,6 @@ T = TypeVar("T", bound=SQLModel)
 class IOrderEnum(str, Enum):
     ascendent = "ascendent"
     descendent = "descendent"
-
-
-_params = Params()
 
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
@@ -126,42 +121,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
         response = await db_session.exec(query)
         return response.all()
-
-    async def fetch_many_paginated(
-        self,
-        params: Params | None = _params,
-        query: T | Select[T] | None = None,
-        db_session: AsyncSession | None = None,
-    ) -> Page[ModelType]:
-        db_session = db_session or self.session
-        if query is None:
-            query = select(self.model)
-
-        output = await paginate(db_session, query, params)
-        return output
-
-    async def fetch_many_paginated_ordered(
-        self,
-        params: Params | None = _params,
-        order_by: str | None = None,
-        order: IOrderEnum | None = IOrderEnum.ascendent,
-        query: T | Select[T] | None = None,
-        db_session: AsyncSession | None = None,
-    ) -> Page[ModelType]:
-        db_session = db_session or self.session
-
-        columns = self.model.__table__.columns
-
-        if order_by is None or order_by not in columns:
-            order_by = "id"
-
-        if query is None:
-            if order == IOrderEnum.ascendent:
-                query = select(self.model).order_by(columns[order_by].asc())
-            else:
-                query = select(self.model).order_by(columns[order_by].desc())
-
-        return await paginate(db_session, query, params)
 
     async def create(
         self,

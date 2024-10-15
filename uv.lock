@@ -90,7 +90,6 @@ dependencies = [
     { name = "bcrypt" },
     { name = "email-validator" },
     { name = "fastapi" },
-    { name = "fastapi-pagination" },
     { name = "granian", extra = ["reload"] },
     { name = "phonenumbers" },
     { name = "pydantic-extra-types" },
@@ -117,7 +116,6 @@ requires-dist = [
     { name = "bcrypt", specifier = ">=4.2.0" },
     { name = "email-validator", specifier = ">=2.2.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
-    { name = "fastapi-pagination", specifier = ">=0.12.31" },
     { name = "granian", extras = ["reload"], specifier = ">=1.6.0" },
     { name = "phonenumbers", specifier = ">=8.13.47" },
     { name = "pydantic-extra-types", specifier = ">=2.9.0" },
@@ -233,19 +231,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7b/5e/bf0471f14bf6ebfbee8208148a3396d1a23298531a6cc10776c59f4c0f87/fastapi-0.115.0.tar.gz", hash = "sha256:f93b4ca3529a8ebc6fc3fcf710e5efa8de3df9b41570958abf1d97d843138004", size = 302295 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/06/ab/a1f7eed031aeb1c406a6e9d45ca04bff401c8a25a30dd0e4fd2caae767c3/fastapi-0.115.0-py3-none-any.whl", hash = "sha256:17ea427674467486e997206a5ab25760f6b09e069f099b96f5b55a32fb6f1631", size = 94625 },
-]
-
-[[package]]
-name = "fastapi-pagination"
-version = "0.12.31"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pydantic" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/78/18/919741cd2ba9fc7caf5ae80ab25426d58460f8bc4335d0c509d438ec1778/fastapi_pagination-0.12.31.tar.gz", hash = "sha256:224d6dc2671f95f1d5e467e42898809438570cd662e1008c7b6b91889211d780", size = 26461 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ac/ff/e4e2817293d0a2722d54f9cd8416adb6c3feee2d2cdc812e968c285e7f5d/fastapi_pagination-0.12.31-py3-none-any.whl", hash = "sha256:a985d1f1baca1c42e7bfa51e9c7d6433e30bdca2ae236c3f3fc01bd9e62dbda6", size = 42764 },
 ]
 
 [[package]]

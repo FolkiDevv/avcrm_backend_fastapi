@@ -82,18 +82,5 @@ async def logging_middleware(request: Request, call_next) -> Response:
 # drilling down the `app` property).
 app.add_middleware(CorrelationIdMiddleware)  # type: ignore
 
-
-@app.get("/")
-def hello():
-    # custom_structlog_logger = structlog.get_logger("my.structlog.logger")
-    # custom_structlog_logger.info("This is an info message from Structlog")
-    # custom_structlog_logger.warning(
-    #     "This is a warning message from Structlog, with attributes",
-    #     an_extra="attribute")
-    # custom_structlog_logger.error("This is an error message from Structlog")
-
-    return "Hello, World!"
-
-
 # Add Routers
 app.include_router(api_router_v1, prefix=settings.API_V1_STR)

@@ -6,7 +6,7 @@ from sqlmodel import Field, Relationship, SQLModel
 from app.models.base import BaseUUIDModel
 
 if TYPE_CHECKING:
-    from app.models import User
+    from app.models import Request, User
 
 
 class ClientBase(SQLModel):
@@ -16,3 +16,4 @@ class ClientBase(SQLModel):
 
 class Client(BaseUUIDModel, ClientBase, table=True):
     user: "User" = Relationship()
+    requests: "Request" = Relationship(back_populates="client")

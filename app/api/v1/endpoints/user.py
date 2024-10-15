@@ -17,14 +17,14 @@ router = APIRouter()
 
 
 @router.get("/me", response_model=UserRead)
-async def user_me(current_user: Annotated[UserRead, Security(get_auth_user)]):
+async def user_me(current_user: Annotated[User, Security(get_auth_user)]):
     return current_user
 
 
 @router.get("/{user_id}", response_model=UserRead)
 async def get_user_by_id(
     user_id: UUID,
-    _: Annotated[UserRead, Security(get_auth_user, scopes=("user.get",))],
+    _: Annotated[User, Security(get_auth_user, scopes=("user.get",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
     return await CRUDUser(session).fetch(id=user_id)
@@ -32,7 +32,7 @@ async def get_user_by_id(
 
 @router.get("/", response_model=list[UserRead])
 async def get_users(
-    _: Annotated[UserRead, Security(get_auth_user, scopes=("user.get",))],
+    _: Annotated[User, Security(get_auth_user, scopes=("user.get",))],
     session: Annotated[AsyncSession, Depends(get_session)],
     skip: Annotated[int, Query()] = 0,
     limit: Annotated[int, Query()] = 100,
@@ -56,7 +56,7 @@ async def get_users(
 async def update_user_by_id(
     user_id: UUID,
     updated_user: UserUpdate,
-    _: Annotated[UserRead, Security(get_auth_user, scopes=("user.update",))],
+    _: Annotated[User, Security(get_auth_user, scopes=("user.update",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
     crud_user = CRUDUser(session)
@@ -73,7 +73,7 @@ async def update_user_by_id(
 @router.delete("/{user_id}", response_model=UserRead)
 async def remove_user_by_id(
     user_id: UUID,
-    current_user: Annotated[UserRead, Security(get_auth_user, scopes=("user.remove",))],
+    current_user: Annotated[User, Security(get_auth_user, scopes=("user.remove",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
     if current_user.id == user_id:
@@ -85,7 +85,7 @@ async def remove_user_by_id(
 @router.put("/", response_model=UserRead)
 async def create_user(
     new_user: UserCreate,
-    _: Annotated[UserRead, Security(get_auth_user, scopes=("user.create",))],
+    _: Annotated[User, Security(get_auth_user, scopes=("user.create",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
     crud_user = CRUDUser(session)

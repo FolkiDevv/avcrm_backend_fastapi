@@ -23,7 +23,9 @@ class UserBase(SQLModel):
     password: str | None = Field(nullable=True)
 
     first_name: str = Field(min_length=2, max_length=50, nullable=False)
-    last_name: str = Field(min_length=2, max_length=50, nullable=False)
+    last_name: str | None = Field(
+        min_length=2, max_length=50, nullable=True, default=None
+    )
     email: EmailStr | None = Field(nullable=True, default=None)
     phone: PhoneNumber | None = Field(nullable=True, default=None)
 
