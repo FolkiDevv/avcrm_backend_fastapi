@@ -13,7 +13,7 @@ from app.utils.partial import optional
 class RequestBaseCU(RequestBase):
     first_name: str = Field(min_length=2, max_length=50, nullable=False)
     phone: PhoneNumber | None = Field()
-    changes_history: dict[datetime, str] | None
+    changes_history: dict[datetime, str] | None = Field(default=None)
 
 
 class RequestCreate(RequestBaseCU):

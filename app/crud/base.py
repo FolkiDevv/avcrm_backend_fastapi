@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi import HTTPException
 from pydantic import BaseModel
 from sqlalchemy import exc
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import selectinload
 from sqlmodel import SQLModel, func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel.sql.expression import Select
@@ -39,14 +39,14 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     async def fetch(
         self,
         id: UUID | str | int,
-        joinedloads: list[SQLModel | Literal["*"]] | None = None,
+        selectinload_fields: list[SQLModel | Literal["*"]] | None = None,
         db_session: AsyncSession | None = None,
     ) -> ModelType | None:
         db_session = db_session or self.session
         query = select(self.model).where(self.model.id == id)
 
-        if joinedloads is not None:
-            query = query.options(joinedload(*joinedloads))
+        if selectinload_fields is not None:
+            query = query.options(selectinload(*selectinload_fields))
 
         response = await db_session.exec(query)
         return response.one_or_none()
@@ -74,7 +74,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         skip: int = 0,
         limit: int = 100,
         query: T | Select[T] | None = None,
-        joinedloads: list[SQLModel | Literal["*"]] | None = None,
+        selectinload_fields: list[SQLModel | Literal["*"]] | None = None,
         db_session: AsyncSession | None = None,
     ) -> Sequence[ModelType]:
         db_session = db_session or self.session
@@ -82,8 +82,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         query = query if query is not None else select(self.model)
         query = query.offset(skip).limit(limit).order_by(self.model.id)
 
-        if joinedloads is not None:
-            query = query.options(joinedload(*joinedloads))
+        if selectinload_fields is not None:
+            query = query.options(selectinload(*selectinload_fields))
 
         response = await db_session.exec(query)
         return response.all()
@@ -95,7 +95,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         order_by: str | None = None,
         order: IOrderEnum | None = IOrderEnum.ascendent,
         query: T | Select[T] | None = None,
-        joinedloads: list[SQLModel | Literal["*"]] | None = None,
+        selectinload_fields: list[SQLModel | Literal["*"]] | None = None,
         db_session: AsyncSession | None = None,
     ) -> Sequence[ModelType]:
         db_session = db_session or self.session
@@ -116,8 +116,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             )
         )
 
-        if joinedloads is not None:
-            query = query.options(joinedload(*joinedloads))
+        if selectinload_fields is not None:
+            query = query.options(selectinload(*selectinload_fields))
 
         response = await db_session.exec(query)
         return response.all()
@@ -169,11 +169,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return obj_current
 
     async def remove(
-        self, id: UUID | str | int, db_session: AsyncSession | None = None
+        self, obj: ModelType, db_session: AsyncSession | None = None
     ) -> ModelType:
         db_session = db_session or self.session
-        response = await db_session.exec(select(self.model).where(self.model.id == id))
-        obj = response.one()
         await db_session.delete(obj)
         await db_session.commit()
         return obj

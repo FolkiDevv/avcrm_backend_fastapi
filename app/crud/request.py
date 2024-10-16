@@ -31,7 +31,9 @@ class CRUDRequest(CRUDBase[Request, RequestCreate, RequestUpdate]):
                     "client_id": client.id,
                     "changes_history": {
                         k.isoformat(): v for k, v in obj_in.changes_history.items()
-                    },
+                    }
+                    if obj_in.changes_history
+                    else None,
                 },
             )
 

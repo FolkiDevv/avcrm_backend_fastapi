@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Security
@@ -9,17 +9,14 @@ from app.core.security import get_auth_user
 from app.crud.client import CRUDClient
 from app.crud.user import CRUDUser
 from app.db import get_session
-from app.models import Client
+from app.models import Client, User
 from app.schemas.client import ClientCreate, ClientRead, ClientUpdate
-
-if TYPE_CHECKING:
-    from app.models import User
 
 router = APIRouter()
 
 
 @router.get("/{client_id}", response_model=ClientRead)
-async def get_client_by_id(
+async def get_client(
     client_id: UUID,
     _: Annotated["User", Security(get_auth_user, scopes=("client.get",))],
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -29,7 +26,7 @@ async def get_client_by_id(
     return client
 
 
-@router.get("/", response_model=list[ClientRead])
+@router.get("", response_model=list[ClientRead])
 async def get_clients(
     _: Annotated["User", Security(get_auth_user, scopes=("client.get",))],
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -43,25 +40,27 @@ async def get_clients(
 
     if ids is not None:
         statement = statement.where(col(Client.id).in_(ids))
-    if first_name is not None:
-        statement = statement.where(col(Client.user.first_name).contains(first_name))
-    if last_name is not None:
-        statement = statement.where(col(Client.user.last_name).contains(last_name))
+    if first_name or last_name:
+        statement = statement.join(User)
+        if first_name:
+            statement = statement.where(col(User.first_name).contains(first_name))
+        if last_name:
+            statement = statement.where(col(User.last_name).contains(last_name))
 
     return await CRUDClient(session).fetch_many(
-        skip, limit, statement, joinedloads=[Client.user]
+        skip, limit, statement, selectinload_fields=[Client.user]
     )
 
 
-@router.post("/{client_id}", response_model=ClientRead)
-async def update_client_by_id(
+@router.put("/{client_id}", response_model=ClientRead)
+async def update_client(
     client_id: UUID,
     updated_client: ClientUpdate,
     _: Annotated["User", Security(get_auth_user, scopes=("client.update",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
     crud_client = CRUDClient(session)
-    client = await crud_client.fetch(id=client_id, joinedloads=[Client.user])
+    client = await crud_client.fetch(client_id, selectinload_fields=[Client.user])
     if client is None:
         raise HTTPException(status_code=404, detail="Client not found")
 
@@ -71,23 +70,25 @@ async def update_client_by_id(
 
 
 @router.delete("/{client_id}", response_model=ClientRead)
-async def remove_client_by_id(
+async def remove_client(
     client_id: UUID,
     _: Annotated["User", Security(get_auth_user, scopes=("client.remove",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
-    client = await CRUDClient(session).fetch(client_id, joinedloads=[Client.user])
+    client = await CRUDClient(session).fetch(
+        client_id, selectinload_fields=[Client.user]
+    )
     if client is None:
         raise HTTPException(status_code=404, detail="Client not found")
 
     client_read = ClientRead.model_validate(client)
 
-    await CRUDUser(session).remove(client.user_id)
+    await CRUDUser(session).remove(client.user)
 
     return client_read
 
 
-@router.put("/", response_model=ClientRead)
+@router.post("", status_code=201, response_model=ClientRead)
 async def create_client(
     new_user: ClientCreate,
     _: Annotated["User", Security(get_auth_user, scopes=("client.create",))],

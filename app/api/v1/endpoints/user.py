@@ -22,7 +22,7 @@ async def user_me(current_user: Annotated[User, Security(get_auth_user)]):
 
 
 @router.get("/{user_id}", response_model=UserRead)
-async def get_user_by_id(
+async def get_user(
     user_id: UUID,
     _: Annotated[User, Security(get_auth_user, scopes=("user.get",))],
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -30,7 +30,7 @@ async def get_user_by_id(
     return await CRUDUser(session).fetch(id=user_id)
 
 
-@router.get("/", response_model=list[UserRead])
+@router.get("", response_model=list[UserRead])
 async def get_users(
     _: Annotated[User, Security(get_auth_user, scopes=("user.get",))],
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -52,8 +52,8 @@ async def get_users(
     return await CRUDUser(session).fetch_many(skip, limit, statement)
 
 
-@router.post("/{user_id}", response_model=UserRead)
-async def update_user_by_id(
+@router.put("/{user_id}", response_model=UserRead)
+async def update_user(
     user_id: UUID,
     updated_user: UserUpdate,
     _: Annotated[User, Security(get_auth_user, scopes=("user.update",))],
@@ -71,7 +71,7 @@ async def update_user_by_id(
 
 
 @router.delete("/{user_id}", response_model=UserRead)
-async def remove_user_by_id(
+async def remove_user(
     user_id: UUID,
     current_user: Annotated[User, Security(get_auth_user, scopes=("user.remove",))],
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -79,17 +79,19 @@ async def remove_user_by_id(
     if current_user.id == user_id:
         raise HTTPException(status_code=400, detail="You can't delete yourself")
 
-    return await CRUDUser(session).remove(user_id)
+    crud_user = CRUDUser(session)
+    user = await crud_user.fetch(id=user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return await crud_user.remove(user)
 
 
-@router.put("/", response_model=UserRead)
+@router.post("", status_code=201, response_model=UserRead)
 async def create_user(
     new_user: UserCreate,
     _: Annotated[User, Security(get_auth_user, scopes=("user.create",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
-    crud_user = CRUDUser(session)
-
     new_user.password = get_password_hash(new_user.password)
-
-    return await crud_user.create(new_user)
+    return await CRUDUser(session).create(new_user)
