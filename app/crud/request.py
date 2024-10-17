@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import HTTPException
 from sqlalchemy import exc
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -15,14 +17,20 @@ class CRUDRequest(CRUDBase[Request, RequestCreate, RequestUpdate]):
     async def create(
         self,
         obj_in: RequestCreate | Request,
+        client_id: UUID | None = None,
         # created_by_id: UUID | str | None = None,
         db_session: AsyncSession | None = None,
     ) -> Request:
         db_session = db_session or self.session
 
-        client = await CRUDClient(db_session).create(
-            ClientCreate.model_validate(obj_in), commit=False
-        )
+        if client_id is None:
+            client = await CRUDClient(db_session).create(
+                ClientCreate.model_validate(obj_in), commit=False
+            )
+        else:
+            client = await CRUDClient(db_session).fetch(client_id)
+            if client is None:
+                raise HTTPException(status_code=404, detail="Client not found")
 
         try:
             db_obj = self.model.model_validate(

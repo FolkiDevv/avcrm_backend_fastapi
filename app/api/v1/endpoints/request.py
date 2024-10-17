@@ -9,7 +9,12 @@ from app.core.security import get_auth_user
 from app.crud.request import CRUDRequest
 from app.db import get_session
 from app.models import Client, Request, User
-from app.schemas.request import RequestCreate, RequestRead, RequestUpdate
+from app.schemas.request import (
+    RequestCreate,
+    RequestCreateWithNewClient,
+    RequestRead,
+    RequestUpdate,
+)
 
 router = APIRouter()
 
@@ -87,7 +92,7 @@ async def remove_request(
 
 @router.post("", status_code=201, response_model=RequestRead)
 async def create_request(
-    new_request: RequestCreate,
+    new_request: RequestCreate | RequestCreateWithNewClient,
     _: Annotated["User", Security(get_auth_user, scopes=("request.create",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):

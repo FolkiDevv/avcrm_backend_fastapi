@@ -16,9 +16,17 @@ class RequestBaseCU(RequestBase):
     changes_history: dict[datetime, str] | None = Field(default=None)
 
 
-class RequestCreate(RequestBaseCU):
+class RequestCreateWithNewClient(RequestBaseCU):
     client_id: ClassVar
     status: ClassVar
+    changes_history: ClassVar
+
+
+class RequestCreate(RequestBaseCU):
+    status: ClassVar
+    phone: ClassVar
+    first_name: ClassVar
+    changes_history: ClassVar
 
 
 @optional()
