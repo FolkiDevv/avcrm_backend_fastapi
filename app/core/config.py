@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "AVCRM"
     API_VERSION: str = "v1"
     API_V1_STR: str = f"/api/{API_VERSION}"
+    STORAGE_PATH: str = "uploads"
     DATABASE_URL: str
     SECRET_KEY: str
     ALGORITHM: str = "HS256"

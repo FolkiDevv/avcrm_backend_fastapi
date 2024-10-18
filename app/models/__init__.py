@@ -1,3 +1,5 @@
+from .attach import Attach
+from .attach_group import AttachGroup
 from .client import Client
 from .permission import Permission
 from .request import Request
