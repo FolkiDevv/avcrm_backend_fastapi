@@ -1,6 +1,8 @@
 import time
+from contextlib import asynccontextmanager
 
 import structlog
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from asgi_correlation_id import CorrelationIdMiddleware
 from asgi_correlation_id.context import correlation_id
 from fastapi import FastAPI
@@ -9,24 +11,38 @@ from starlette.responses import Response
 
 from app.api.v1.api import api_router as api_router_v1
 from app.core.config import settings
+from app.core.tasks import unlink_unused_files
 from app.utils.custom_logging import setup_logging
 
 setup_logging(json_logs=settings.LOG_JSON_FORMAT, log_level=settings.LOG_LEVEL)
-access_logger = structlog.get_logger("api.access")
-logger = structlog.get_logger()
+access_logger = structlog.stdlib.get_logger("api.access")
+logger = structlog.stdlib.get_logger()
 
-# @asynccontextmanager
-# async def lifespan(fastapi_app: FastAPI):
-#     await logger.info("App is starting")
-#     yield
-#     await logger.info("App is shutting down")
+
+async def schedule_tasks() -> None:
+    scheduler.add_job(
+        unlink_unused_files,
+        "interval",
+        minutes=settings.STORAGE_CLEANUP_INTERVAL,
+        id="unlink_unused_files",
+    )
+
+
+@asynccontextmanager
+async def lifespan(fastapi_app: FastAPI) -> None:
+    await schedule_tasks()
+    scheduler.start()
+    yield
+    scheduler.shutdown()
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.API_VERSION,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    # lifespan=lifespan,
+    lifespan=lifespan,
 )
+scheduler = AsyncIOScheduler()
 
 
 @app.middleware("http")

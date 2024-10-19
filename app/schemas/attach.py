@@ -19,7 +19,7 @@ class AttachCreate(AttachCUBase):
 
 @optional()
 class AttachUpdate(AttachCUBase):
-    pass
+    request_id: ClassVar
 
 
 class AttachRead(AttachBase):

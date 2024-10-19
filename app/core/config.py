@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    STORAGE_CLEANUP_INTERVAL: int = 10  # minutes
 
     SUPERUSER_ID: UUID | None = None
 
