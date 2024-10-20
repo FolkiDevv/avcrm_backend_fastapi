@@ -2,9 +2,19 @@ from typing import TYPE_CHECKING, Annotated
 from urllib.parse import quote
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Security, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Security,
+    UploadFile,
+)
 from fastapi.responses import FileResponse
 from sqlalchemy import exc
+from sqlmodel import col, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.security import get_auth_user
@@ -50,6 +60,26 @@ async def get_attach_data(
         raise HTTPException(status_code=404, detail="Attach not found")
 
     return attach
+
+
+@router.get("", response_model=list[AttachRead])
+async def get_attachs(
+    request_id: Annotated[UUID, Query()],
+    _: Annotated["User", Security(get_auth_user, scopes=("request.get", "attach.get"))],
+    session: Annotated[AsyncSession, Depends(get_session)],
+    skip: Annotated[int, Query()] = 0,
+    limit: Annotated[int, Query()] = 100,
+    ids: Annotated[list[UUID] | None, Query()] = None,
+    group_id: Annotated[int | None, Query()] = None,
+):
+    statement = select(Attach).where(col(Attach.request_id) == request_id)
+
+    if ids is not None:
+        statement = statement.where(col(Attach.id).in_(ids))
+    if group_id is not None:
+        statement = statement.where(col(Attach.group_id) == group_id)
+
+    return await CRUDAttach(session).fetch_many(skip, limit, statement)
 
 
 @router.put("/{attach_id}", response_model=AttachRead)
@@ -134,9 +164,6 @@ async def upload_attach(
             return attach
         except exc.IntegrityError as e:
             await session.rollback()
-            # TODO: create a function that runs every few minutes and deletes
-            #  files that are not referenced in the database.
-            # path.unlink()
             raise HTTPException(
                 status_code=409,
                 detail="Foreign key constraint failed",

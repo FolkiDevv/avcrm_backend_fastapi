@@ -1,5 +1,5 @@
 import time
-from contextlib import asynccontextmanager
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 
 import structlog
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -29,7 +29,7 @@ async def schedule_tasks() -> None:
 
 
 @asynccontextmanager
-async def lifespan(fastapi_app: FastAPI) -> None:
+async def lifespan(fastapi_app: FastAPI) -> AbstractAsyncContextManager[None]:
     await schedule_tasks()
     scheduler.start()
     yield
