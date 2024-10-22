@@ -6,6 +6,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from asgi_correlation_id import CorrelationIdMiddleware
 from asgi_correlation_id.context import correlation_id
 from fastapi import FastAPI
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -13,6 +16,7 @@ from app.api.v1.api import api_router as api_router_v1
 from app.core.config import settings
 from app.core.tasks import unlink_unused_files
 from app.utils.custom_logging import setup_logging
+from app.utils.rate_limit import limiter
 
 setup_logging(json_logs=settings.LOG_JSON_FORMAT, log_level=settings.LOG_LEVEL)
 access_logger = structlog.stdlib.get_logger("api.access")
@@ -43,6 +47,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 scheduler = AsyncIOScheduler()
+
+app.state.limiter = limiter  # type: ignore
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore
 
 
 @app.middleware("http")
@@ -86,7 +93,7 @@ async def logging_middleware(request: Request, call_next) -> Response:
                 network={"client": {"ip": client_host, "port": client_port}},
                 duration=process_time,
             )
-            response.headers["X-Process-Time"] = str(process_time / 10**9)
+            # response.headers["X-Process-Time"] = str(process_time / 10**9)
         return response  # noqa: B012
 
 
@@ -97,6 +104,8 @@ async def logging_middleware(request: Request, call_next) -> Response:
 # (you can verify this by debugging `app.middleware_stack` and recursively
 # drilling down the `app` property).
 app.add_middleware(CorrelationIdMiddleware)  # type: ignore
+
+app.add_middleware(SlowAPIMiddleware)  # type: ignore
 
 # Add Routers
 app.include_router(api_router_v1, prefix=settings.API_V1_STR)

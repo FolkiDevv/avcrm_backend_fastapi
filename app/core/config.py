@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     STORAGE_CLEANUP_INTERVAL: int = 10  # minutes
+    DEFAULT_RATE_LIMIT: int = 10
+    MAX_LOGIN_ATTEMPTS: int = 3
+    MAX_LOGIN_ATTEMPTS_BLOCK_TIME: int = 5
+    MAX_LOGIN_ATTEMPTS_PERIOD: int = 15  # minutes
 
     SUPERUSER_ID: UUID | None = None
 

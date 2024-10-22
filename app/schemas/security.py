@@ -10,3 +10,4 @@ class TokenScheme(BaseModel):
 
 class TokenData(BaseModel):
     id: UUID
+    login_id: UUID

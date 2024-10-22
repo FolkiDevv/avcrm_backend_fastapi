@@ -7,6 +7,7 @@ from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.models.base import BaseIDModel, BaseUUIDModel
+from app.models.user_login import UserLogin
 
 if TYPE_CHECKING:
     from app.models.role import Role
@@ -34,9 +35,9 @@ class UserBase(SQLModel):
 
 class User(BaseUUIDModel, UserBase, table=True):
     roles: list["UserRoles"] | None = Relationship(
-        cascade_delete=True,
         # sa_relationship_kwargs={"lazy": "joined"}
     )
+    user_login: UserLogin | None = Relationship()
 
 
 class UserRoles(BaseIDModel, table=True):

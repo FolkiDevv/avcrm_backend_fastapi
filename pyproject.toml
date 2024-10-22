@@ -18,6 +18,7 @@ dependencies = [
     "pydantic-settings>=2.5.2",
     "pyjwt>=2.9.0",
     "python-multipart>=0.0.12",
+    "slowapi>=0.1.9",
     "sqlmodel>=0.0.22",
     "structlog>=24.4.0",
     "typer>=0.12.5",
