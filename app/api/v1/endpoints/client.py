@@ -21,8 +21,11 @@ async def get_client(
     _: Annotated["User", Security(get_auth_user, scopes=("client.get",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
-    client = await CRUDClient(session).fetch(id=client_id)
-    await client.awaitable_attrs.user
+    client = await CRUDClient(session).fetch(
+        obj_id=client_id, selectinload_fields=[Client.user]
+    )
+    if client is None:
+        raise HTTPException(status_code=404, detail="Client not found")
     return client
 
 

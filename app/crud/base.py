@@ -38,12 +38,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def fetch(
         self,
-        id: UUID | str | int,
+        obj_id: UUID | str | int,
         selectinload_fields: list[SQLModel | Literal["*"]] | None = None,
         db_session: AsyncSession | None = None,
     ) -> ModelType | None:
         db_session = db_session or self.session
-        query = select(self.model).where(self.model.id == id)
+        query = select(self.model).where(self.model.id == obj_id)
 
         if selectinload_fields is not None:
             query = query.options(selectinload(*selectinload_fields))

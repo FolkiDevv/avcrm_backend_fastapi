@@ -25,8 +25,11 @@ async def get_request(
     _: Annotated["User", Security(get_auth_user, scopes=("request.get",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
-    request = await CRUDRequest(session).fetch(id=request_id)
-    await request.awaitable_attrs.client
+    request = await CRUDRequest(session).fetch(
+        obj_id=request_id, selectinload_fields=["*"]
+    )
+    if request is None:
+        raise HTTPException(status_code=404, detail="Request not found")
     return request
 
 

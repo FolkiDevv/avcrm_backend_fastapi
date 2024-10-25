@@ -27,7 +27,10 @@ async def get_user(
     _: Annotated[User, Security(get_auth_user, scopes=("user.get",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
-    return await CRUDUser(session).fetch(id=user_id)
+    user = await CRUDUser(session).fetch(obj_id=user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 
 @router.get("", response_model=list[UserRead])
@@ -60,7 +63,7 @@ async def update_user(
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
     crud_user = CRUDUser(session)
-    user = await crud_user.fetch(id=user_id)
+    user = await crud_user.fetch(obj_id=user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -80,7 +83,7 @@ async def remove_user(
         raise HTTPException(status_code=400, detail="You can't delete yourself")
 
     crud_user = CRUDUser(session)
-    user = await crud_user.fetch(id=user_id)
+    user = await crud_user.fetch(obj_id=user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
 

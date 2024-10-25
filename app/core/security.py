@@ -25,7 +25,6 @@ async def authenticate_user(
     username: str, password: str, session: AsyncSession
 ) -> User:
     user = await CRUDUser(session).fetch_by_username(username=username)
-    await user.awaitable_attrs.user_login
     incorrect_exc = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Incorrect username or password",
@@ -33,6 +32,8 @@ async def authenticate_user(
     )
     if not user:
         raise incorrect_exc
+
+    await user.awaitable_attrs.user_login
 
     dt_now = datetime.now()
     user_login = user.user_login
@@ -134,7 +135,7 @@ async def __get_current_user(
     except InvalidTokenError as err:
         raise credentials_exception from err
 
-    user = await CRUDUser(session).fetch(id=token_data.id)
+    user = await CRUDUser(session).fetch(obj_id=token_data.id)
     if not user:
         raise credentials_exception
 
@@ -158,7 +159,7 @@ async def __get_current_user(
 
     res = (await session.exec(statement)).all()
 
-    permissions = {perm.name for (_, perm) in res}
+    permissions = {perm.name for perm in res}
 
     logger.debug(str(permissions))
     if user.id != settings.SUPERUSER_ID:
