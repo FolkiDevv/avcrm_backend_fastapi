@@ -52,6 +52,7 @@ class CRUDClient(CRUDBase[Client, ClientCreate, ClientUpdate]):
 
         if commit:
             await db_session.commit()
+            await db_session.refresh(db_obj)
 
         return db_obj
 

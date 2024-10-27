@@ -20,6 +20,8 @@ class UserBase(SQLModel):
         nullable=False,
         unique=True,
         schema_extra={"pattern": r"^[a-z0-9_]+$"},
+        min_length=5,
+        max_length=50,
     )
     password: str | None = Field(nullable=True)
 
@@ -30,7 +32,7 @@ class UserBase(SQLModel):
     email: EmailStr | None = Field(nullable=True, default=None)
     phone: PhoneNumber | None = Field(nullable=True, default=None)
 
-    is_active: bool = Field(default=True, nullable=False)
+    is_active: bool = Field(default=False, nullable=False)
 
 
 class User(BaseUUIDModel, UserBase, table=True):

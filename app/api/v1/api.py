@@ -9,5 +9,5 @@ api_router.include_router(client.router, prefix="/clients", tags=["clients"])
 api_router.include_router(request.router, prefix="/requests", tags=["requests"])
 api_router.include_router(attach.router, prefix="/attachs", tags=["attachs"])
 api_router.include_router(
-    attach_group.router, prefix="/attach_groups", tags=["attach_groups"]
+    attach_group.router, prefix="/attachs/groups", tags=["attachs"]
 )

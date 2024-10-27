@@ -1,6 +1,7 @@
 import os
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
+from uuid import UUID
 
 import jwt
 import pytest
@@ -53,19 +54,23 @@ async def ac(anyio_backend):
 @pytest.fixture()
 async def session(anyio_backend):
     async with AsyncSession(engine) as session:
+        for table in reversed(SQLModel.metadata.sorted_tables):
+            await session.exec(table.delete())
+        await session.commit()
         yield session
 
 
 @pytest.fixture()
 async def create_user(anyio_backend, ac, session):
     async def _create_user(
-        username: str, password: str, perms: list[str] | None = None
+        username: str, password: str, perms: tuple[str, ...] | None = None
     ):
         user = User(
             username=username,
             first_name="Ivan",
             last_name="Tea",
             password=get_password_hash(password),
+            is_active=True,
         )
         session.add(user)
 
@@ -111,7 +116,7 @@ async def create_user(anyio_backend, ac, session):
 
 @pytest.fixture
 def generate_token():
-    def _generate_token(user_id: int, expired: bool = False):
+    def _generate_token(user_id: UUID, expired: bool = False):
         exp = datetime.now(UTC)
         exp += timedelta(minutes=5) if not expired else -timedelta(minutes=5)
         payload = {
@@ -122,3 +127,19 @@ def generate_token():
         return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
     return _generate_token
+
+
+@pytest.fixture
+async def get_token(request, anyio_backend, create_user, generate_token):
+    async def _get_token(
+        perms: tuple[str, ...] | None = None, expired: bool = False
+    ) -> tuple[str, User]:
+        user = await create_user(
+            request.node.name,
+            "test",
+            perms=perms,
+        )
+        token = generate_token(user.id, expired)
+        return token, user
+
+    return _get_token
