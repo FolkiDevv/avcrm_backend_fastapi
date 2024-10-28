@@ -31,7 +31,9 @@ class RequestCreate(RequestBaseCU):
 
 @optional()
 class RequestUpdate(RequestBaseCU):
-    pass
+    phone: ClassVar
+    first_name: ClassVar
+    changes_history: ClassVar
 
 
 class RequestRead(RequestBase):

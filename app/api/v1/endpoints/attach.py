@@ -1,7 +1,9 @@
+from hashlib import md5
 from typing import TYPE_CHECKING, Annotated
 from urllib.parse import quote
 from uuid import UUID
 
+import aiofiles
 from fastapi import (
     APIRouter,
     Depends,
@@ -122,7 +124,7 @@ async def remove_attach(
     return attach_read
 
 
-@router.post("", response_model=AttachRead)
+@router.post("", response_model=AttachRead, status_code=201)
 async def upload_attach(
     request_id: Annotated[UUID, Form()],
     file: Annotated[UploadFile, File()],
@@ -130,16 +132,23 @@ async def upload_attach(
     session: Annotated[AsyncSession, Depends(get_session)],
     group_id: Annotated[int | None, Form()] = None,
 ):
-    path, filename = get_filepath(file.filename)
+    # Generate file checksum to avoid collisions and duplicates
+    filehash = md5()
+    while contents := await file.read(128 * filehash.block_size):
+        filehash.update(contents)
+    path, filename = get_filepath(filehash.hexdigest())
 
     try:
         if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
 
         path = path.joinpath(filename)
-        with path.open("wb") as f:
-            while contents := await file.read(64 * 1024):
-                f.write(contents)
+        # Skip if file already exists, checksum guarantee that exists file is the same
+        if not path.exists():
+            async with aiofiles.open(path, "wb") as out_file:
+                await file.seek(0)
+                while content := await file.read(1024):
+                    await out_file.write(content)
     except Exception as e:
         raise HTTPException(
             status_code=500, detail="There was an error uploading the file"

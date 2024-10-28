@@ -8,7 +8,7 @@ from app.crud.base import CRUDBase
 from app.crud.client import CRUDClient
 from app.models import Request
 from app.schemas.client import ClientCreate
-from app.schemas.request import RequestCreate, RequestUpdate
+from app.schemas.request import RequestCreate, RequestCreateWithNewClient, RequestUpdate
 
 
 class CRUDRequest(CRUDBase[Request, RequestCreate, RequestUpdate]):
@@ -16,7 +16,7 @@ class CRUDRequest(CRUDBase[Request, RequestCreate, RequestUpdate]):
 
     async def create(
         self,
-        obj_in: RequestCreate | Request,
+        obj_in: RequestCreate | RequestCreateWithNewClient,
         client_id: UUID | None = None,
         # created_by_id: UUID | str | None = None,
         db_session: AsyncSession | None = None,
@@ -40,7 +40,7 @@ class CRUDRequest(CRUDBase[Request, RequestCreate, RequestUpdate]):
                     "changes_history": {
                         k.isoformat(): v for k, v in obj_in.changes_history.items()
                     }
-                    if obj_in.changes_history
+                    if "changes_history" in obj_in
                     else None,
                 },
             )

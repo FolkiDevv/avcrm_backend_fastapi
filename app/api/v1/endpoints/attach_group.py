@@ -23,7 +23,7 @@ async def get_attach_group(
     _: Annotated["User", Security(get_auth_user, scopes=("attach.get",))],
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
-    attach_group = CRUDAttachGroup(session).fetch(attach_group_id)
+    attach_group = await CRUDAttachGroup(session).fetch(attach_group_id)
     if attach_group is None:
         raise HTTPException(status_code=404, detail="Attach Group not found")
     return attach_group
@@ -74,7 +74,7 @@ async def remove_attach_group(
     return await crud_attach_group.remove(attach_group)
 
 
-@router.post("", response_model=AttachGroupRead)
+@router.post("", response_model=AttachGroupRead, status_code=201)
 async def create_attach_group(
     new_attach_group: AttachGroupCreate,
     _: Annotated["User", Security(get_auth_user, scopes=("attach.create",))],

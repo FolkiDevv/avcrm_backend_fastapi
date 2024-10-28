@@ -72,6 +72,7 @@ async def update_request(
 
     request = await crud_request.update(request, updated_request)
     await request.awaitable_attrs.client
+    await request.client.awaitable_attrs.user
     return request
 
 
