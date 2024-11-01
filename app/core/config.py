@@ -19,12 +19,12 @@ class LogLevelEnum(str, Enum):
 
 
 class Settings(BaseSettings):
-    MODE: ModeEnum = ModeEnum.development
-    LOG_LEVEL: LogLevelEnum = LogLevelEnum.DEBUG
+    MODE: ModeEnum = ModeEnum.production
+    LOG_LEVEL: LogLevelEnum = LogLevelEnum.INFO
     LOG_JSON_FORMAT: bool = False
     PROJECT_NAME: str = "AVCRM"
     API_VERSION: str = "v1"
-    API_V1_STR: str = f"/api/{API_VERSION}"
+    API_PATH: str = f"/api/{API_VERSION}"
     STORAGE_PATH: str = "uploads"
     DATABASE_URL: str
     SECRET_KEY: str

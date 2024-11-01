@@ -9,6 +9,7 @@ wheels/
 # Pytest
 .pytest_cache/
 
+
 # Uploads
 uploads/
 
@@ -21,3 +22,9 @@ uploads/
 
 # Env
 .env
+
+# No need to share the following files.
+.gitignore
+Dockerfile
+README.md
+LICENSE

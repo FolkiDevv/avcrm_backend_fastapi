@@ -13,7 +13,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from app.api.v1.api import api_router as api_router_v1
-from app.core.config import settings
+from app.core.config import ModeEnum, settings
 from app.core.tasks import unlink_unused_files
 from app.utils.custom_logging import setup_logging
 from app.utils.rate_limit import limiter
@@ -43,8 +43,11 @@ async def lifespan(fastapi_app: FastAPI) -> AbstractAsyncContextManager[None]:
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.API_VERSION,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    openapi_url=f"{settings.API_PATH}/openapi.json",
     lifespan=lifespan,
+    debug=ModeEnum.development == settings.MODE,
+    redoc_url=None,
+    docs_url="/docs" if ModeEnum.development == settings.MODE else None,
 )
 scheduler = AsyncIOScheduler()
 
@@ -108,4 +111,4 @@ app.add_middleware(CorrelationIdMiddleware)  # type: ignore
 app.add_middleware(SlowAPIMiddleware)  # type: ignore
 
 # Add Routers
-app.include_router(api_router_v1, prefix=settings.API_V1_STR)
+app.include_router(api_router_v1, prefix=settings.API_PATH)

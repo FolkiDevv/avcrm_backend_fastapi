@@ -18,7 +18,7 @@ from app.models import Permission, RolePermission, User, UserLogin, UserRoles
 from app.schemas.security import TokenData
 from app.utils.bcrypt import verify_password
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_PATH}/login")
 
 
 async def authenticate_user(

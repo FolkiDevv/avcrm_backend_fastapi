@@ -1,0 +1,25 @@
+services:
+  fastapi_server:
+    build:
+      context: .
+    container_name: avcrm-backend-fastapi
+    restart: on-failure
+    command: bash -c 'alembic upgrade head && granian --interface asgi --host 0.0.0.0 --no-ws app.main:app'
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/avcrm
+      - SECRET_KEY=secret123
+      - MODE=dev
+      - LOG_LEVEL=debug
+      - LOG_JSON_FORMAT=false
+    depends_on:
+      - db
+
+  db:
+    image: postgres:17
+    container_name: avcrm-backend-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=avcrm

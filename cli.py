@@ -1,5 +1,6 @@
 import asyncio
 from functools import wraps
+from typing import Annotated
 
 import typer
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -25,19 +26,28 @@ def hello(name: str):
     typer.echo(f"Hello {name}")
 
 
+def username_validator(username: str) -> str:
+    if len(username) < 5:
+        raise typer.BadParameter("Username must be at least 5 characters long")
+    return username
+
+
 @app.command(
     short_help="Create a new user in the database",
 )
 @coro
-async def create_user(username: str, password: str):
-    typer.echo(f"Creating user {username} with password {password}")
-    password = get_password_hash(password)
+async def create_user(
+    username: Annotated[str, typer.Argument(callback=username_validator)],
+):
+    typer.echo(f"Creating user {username} with password same as username")
+    password = get_password_hash(username)
     async with AsyncSession(engine) as session:
         user = User(
             username=username,
             password=password,
             first_name=username.title(),
             last_name=username.title(),
+            is_active=True,
         )
         session.add(user)
         await session.commit()
