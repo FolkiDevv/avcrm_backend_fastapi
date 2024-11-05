@@ -1,7 +1,7 @@
 [project]
 name = "avcrm-backend-fastapi"
 version = "0.1.0"
-description = "Add your description here"
+description = "This is a simple HTTP API for CRM-system developed for a small company."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
