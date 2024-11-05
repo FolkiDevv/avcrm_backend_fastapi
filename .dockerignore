@@ -27,4 +27,5 @@ uploads/
 .gitignore
 Dockerfile
 README.md
+README_RU.md
 LICENSE
